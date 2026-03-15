@@ -22,6 +22,7 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
+                .cors(cors->{})
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
@@ -30,7 +31,10 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated()
                 )

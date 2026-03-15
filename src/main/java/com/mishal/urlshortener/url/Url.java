@@ -1,5 +1,6 @@
 package com.mishal.urlshortener.url;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mishal.urlshortener.auth.User;
 import jakarta.persistence.*;
 
@@ -27,6 +28,7 @@ public class Url {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
 
     protected Url(){}

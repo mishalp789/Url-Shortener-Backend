@@ -22,6 +22,18 @@ import java.util.concurrent.ConcurrentHashMap;
         return buckets.computeIfAbsent(key,k->createBucket());
     }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
+
+        String path = request.getRequestURI();
+
+
+        if (path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/actuator")) {
+
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String user = request.getRemoteAddr();
         Bucket bucket = resolveBucket(user);
         if(bucket.tryConsume(1)){
