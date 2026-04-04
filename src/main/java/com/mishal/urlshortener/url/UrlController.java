@@ -15,7 +15,7 @@ import jakarta.validation.Valid;
 
 
 @RestController
-@RequestMapping("/api/v1")
+
 public class UrlController {
     private final UrlService urlService;
 
@@ -24,7 +24,7 @@ public class UrlController {
     }
 
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @PostMapping("/shorten")
+    @PostMapping("/api/v1/shorten")
     public ResponseEntity<Map<String,String>> shorten(@Valid @RequestBody ShortenRequest request){
         String shortCode = urlService.createShortUrl(
             request.getUrl(),
@@ -48,7 +48,7 @@ public class UrlController {
                 .build();
     }
 
-    @GetMapping("/urls/{shortCode}/stats")
+    @GetMapping("/api/v1/urls/{shortCode}/stats")
     public ResponseEntity<UrlStatsResponse> getStats(@PathVariable String shortCode){
         Url url = urlService.getUrl(shortCode);
 
@@ -63,7 +63,7 @@ public class UrlController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/urls")
+    @GetMapping("/api/v1/urls")
     public ResponseEntity<Page<UrlStatsResponse>> getAllUrls(Pageable pageable){
         Page<Url> urls = urlService.getAllUrls(pageable);
 
@@ -80,7 +80,7 @@ public class UrlController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/my")
+    @GetMapping("/api/v1/my")
     public Page<UrlResponse> getMyUrls(Pageable pageable) {
         return urlService.getMyUrls(pageable);
     }
