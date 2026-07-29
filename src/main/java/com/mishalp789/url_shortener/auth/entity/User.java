@@ -3,6 +3,10 @@ package com.mishalp789.url_shortener.auth.entity;
 import com.mishalp789.url_shortener.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import com.mishalp789.url_shortener.url.entity.Url;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,4 +37,12 @@ public class User extends BaseEntity {
     private Role role;
 
     private Boolean enabled = true;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Url> urls = new ArrayList<>();
+
 }
