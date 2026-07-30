@@ -6,6 +6,7 @@ import com.mishalp789.url_shortener.auth.repository.UserRepository;
 import com.mishalp789.url_shortener.common.exception.BadRequestException;
 import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
+import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
 import com.mishalp789.url_shortener.url.dto.UrlResponse;
 import com.mishalp789.url_shortener.url.entity.Url;
 import com.mishalp789.url_shortener.url.repository.UrlRepository;
@@ -16,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +34,7 @@ public class UrlService {
     public UrlResponse createShortUrl(CreateUrlRequest request,
                                       Authentication authentication) {
 
-        User user = userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() ->
-                        new BadRequestException("User not found"));
+        User user = getAuthenticatedUser(authentication);
 
         String shortCode;
 
@@ -49,13 +50,16 @@ public class UrlService {
 
         Url saved = urlRepository.save(url);
 
-        return UrlResponse.builder()
-                .id(saved.getId())
-                .originalUrl(saved.getOriginalUrl())
-                .shortCode(saved.getShortCode())
-                .shortUrl(baseUrl + "/" + saved.getShortCode())
-                .clickCount(saved.getClickCount())
-                .build();
+        return mapToResponse(saved);
+    }
+
+    public List<UrlResponse> getMyUrls(Authentication authentication){
+        User user = getAuthenticatedUser(authentication);
+
+        return urlRepository.findAllByUserOrderByCreatedAtDesc(user)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Transactional
@@ -67,4 +71,66 @@ public class UrlService {
 
         return url.getOriginalUrl();
     }
+
+    public UrlResponse getUrl(Long id,
+                              Authentication authentication) {
+
+        Url url = getUserUrl(id, authentication);
+
+        return mapToResponse(url);
+
+    }
+
+    public void deleteUrl(Long id,
+                          Authentication authentication) {
+
+        Url url = getUserUrl(id, authentication);
+
+        urlRepository.delete(url);
+
+    }
+
+    @Transactional
+    public UrlResponse updateStatus(Long id,
+                                    UpdateUrlStatusRequest request,
+                                    Authentication authentication) {
+
+        Url url = getUserUrl(id, authentication);
+
+        url.setActive(request.getActive());
+
+        return mapToResponse(url);
+
+    }
+
+
+
+    private UrlResponse mapToResponse(Url url) {
+
+        return UrlResponse.builder()
+                .id(url.getId())
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .shortUrl(baseUrl + "/" + url.getShortCode())
+                .clickCount(url.getClickCount())
+                .active(url.getActive())
+                .build();
+    }
+
+    private User getAuthenticatedUser(Authentication authentication) {
+
+        return userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() ->
+                        new BadRequestException("User not found"));
+    }
+
+    private Url getUserUrl(Long id, Authentication authentication) {
+
+        User user = getAuthenticatedUser(authentication);
+
+        return urlRepository.findByIdAndUser(id, user)
+                .orElseThrow(() ->
+                        new BadRequestException("URL not found"));
+    }
+
 }

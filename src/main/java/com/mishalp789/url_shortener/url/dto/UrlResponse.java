@@ -12,5 +12,6 @@ public class UrlResponse {
     private String shortCode;
     private String shortUrl;
     private Long clickCount;
+    private Boolean active;
 
 }

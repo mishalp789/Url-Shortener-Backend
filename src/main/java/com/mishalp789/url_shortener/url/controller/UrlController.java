@@ -2,15 +2,15 @@ package com.mishalp789.url_shortener.url.controller;
 
 import com.mishalp789.url_shortener.common.response.ApiResponse;
 import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
+import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
 import com.mishalp789.url_shortener.url.dto.UrlResponse;
 import com.mishalp789.url_shortener.url.service.UrlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/urls")
@@ -28,5 +28,56 @@ public class UrlController {
                 .message("Short URL created successfully")
                 .data(urlService.createShortUrl(request,authentication))
                 .build();
+    }
+    @GetMapping
+    public ApiResponse<List<UrlResponse>> getMyUrls(
+            Authentication authentication
+    ){
+        return ApiResponse.<List<UrlResponse>>builder()
+                .success(true)
+                .message("URLs retrieved successfully")
+                .data(urlService.getMyUrls(authentication))
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<UrlResponse> getUrl(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ApiResponse.<UrlResponse>builder()
+                .success(true)
+                .message("URL retrieved successfully")
+                .data(urlService.getUrl(id, authentication))
+                .build();
+
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> deleteUrl(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        urlService.deleteUrl(id, authentication);
+
+        return ApiResponse.<Void>builder()
+                .success(true)
+                .message("URL deleted successfully")
+                .build();
+
+    }
+
+    @PatchMapping("/{id}/status")
+    public ApiResponse<UrlResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUrlStatusRequest request,
+            Authentication authentication) {
+
+        return ApiResponse.<UrlResponse>builder()
+                .success(true)
+                .message("URL status updated successfully")
+                .data(urlService.updateStatus(id, request, authentication))
+                .build();
+
     }
 }
