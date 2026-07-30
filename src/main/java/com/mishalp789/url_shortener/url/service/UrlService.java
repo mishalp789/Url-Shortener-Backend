@@ -5,10 +5,7 @@ import com.mishalp789.url_shortener.auth.entity.User;
 import com.mishalp789.url_shortener.auth.repository.UserRepository;
 import com.mishalp789.url_shortener.common.exception.BadRequestException;
 import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
-import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
-import com.mishalp789.url_shortener.url.dto.PageResponse;
-import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
-import com.mishalp789.url_shortener.url.dto.UrlResponse;
+import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.entity.Url;
 import com.mishalp789.url_shortener.url.repository.UrlRepository;
 import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
@@ -68,13 +65,7 @@ public class UrlService {
             page = urlRepository.findAllByUser(user,pageable);
         }else {
             page = urlRepository
-                    .findByUserAndOriginalUrlContainingIgnoreCaseOrUserAndShortCodeContainingIgnoreCase(
-                            user,
-                            search,
-                            user,
-                            search,
-                            pageable
-                    );
+                    .searchUserUrls(user,search,pageable);
         }
         return PageResponse.<UrlResponse>builder()
                 .content(
@@ -118,6 +109,7 @@ public class UrlService {
 
     }
 
+
     @Transactional
     public UrlResponse updateStatus(Long id,
                                     UpdateUrlStatusRequest request,
@@ -130,6 +122,37 @@ public class UrlService {
         return mapToResponse(url);
 
     }
+
+    public UrlAnalyticsResponse getAnalytics(
+            Long id,
+            Authentication authentication
+    ){
+        Url url = getUserUrl(id,authentication);
+        return UrlAnalyticsResponse.builder()
+                .id(url.getId())
+                .originalUrl(url.getOriginalUrl())
+                .shortCode(url.getShortCode())
+                .shortUrl(baseUrl + "/" + url.getShortCode())
+                .clickCount(url.getClickCount())
+                .active(url.getActive())
+                .createdAt(url.getCreatedAt())
+                .updatedAt(url.getUpdatedAt())
+                .build();
+    }
+
+    public DashboardResponse getDashboard(
+            Authentication authentication
+    ){
+        User user = getAuthenticatedUser(authentication);
+
+        return DashboardResponse.builder()
+                .totalUrls(urlRepository.countByUser(user))
+                .activeUrls(urlRepository.countByUserAndActiveTrue(user))
+                .inactiveUrls(urlRepository.countByUserAndActiveFalse(user))
+                .totalClicks(urlRepository.getTotalClicks(user))
+                .build();
+    }
+
 
 
 

@@ -1,10 +1,7 @@
 package com.mishalp789.url_shortener.url.controller;
 
 import com.mishalp789.url_shortener.common.response.ApiResponse;
-import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
-import com.mishalp789.url_shortener.url.dto.PageResponse;
-import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
-import com.mishalp789.url_shortener.url.dto.UrlResponse;
+import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.service.UrlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -89,4 +86,28 @@ public class UrlController {
                 .build();
 
     }
+
+    @GetMapping("/{id}/analytics")
+    public ApiResponse<UrlAnalyticsResponse> getAnalytics(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ApiResponse.<UrlAnalyticsResponse>builder()
+                .success(true)
+                .message("Analytics retrieved successfully")
+                .data(urlService.getAnalytics(id, authentication))
+                .build();
+    }
+
+    @GetMapping("/dashboard")
+    public ApiResponse<DashboardResponse> dashboard(
+            Authentication authentication) {
+
+        return ApiResponse.<DashboardResponse>builder()
+                .success(true)
+                .message("Dashboard retrieved successfully")
+                .data(urlService.getDashboard(authentication))
+                .build();
+    }
+
 }
