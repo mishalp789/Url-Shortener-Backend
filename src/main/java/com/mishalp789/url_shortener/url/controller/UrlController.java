@@ -2,15 +2,19 @@ package com.mishalp789.url_shortener.url.controller;
 
 import com.mishalp789.url_shortener.common.response.ApiResponse;
 import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
+import com.mishalp789.url_shortener.url.dto.PageResponse;
 import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
 import com.mishalp789.url_shortener.url.dto.UrlResponse;
 import com.mishalp789.url_shortener.url.service.UrlService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/urls")
@@ -30,13 +34,18 @@ public class UrlController {
                 .build();
     }
     @GetMapping
-    public ApiResponse<List<UrlResponse>> getMyUrls(
-            Authentication authentication
-    ){
-        return ApiResponse.<List<UrlResponse>>builder()
+    public ApiResponse<PageResponse<UrlResponse>> getMyUrls(
+            Authentication authentication,
+            @RequestParam(required = false) String search,
+            @PageableDefault(
+                    size=10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+    )Pageable pageable){
+        return ApiResponse.<PageResponse<UrlResponse>>builder()
                 .success(true)
                 .message("URLs retrieved successfully")
-                .data(urlService.getMyUrls(authentication))
+                .data(urlService.getMyUrls(authentication,search,pageable))
                 .build();
     }
 

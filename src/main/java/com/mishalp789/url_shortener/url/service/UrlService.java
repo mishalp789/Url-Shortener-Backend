@@ -6,6 +6,7 @@ import com.mishalp789.url_shortener.auth.repository.UserRepository;
 import com.mishalp789.url_shortener.common.exception.BadRequestException;
 import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.CreateUrlRequest;
+import com.mishalp789.url_shortener.url.dto.PageResponse;
 import com.mishalp789.url_shortener.url.dto.UpdateUrlStatusRequest;
 import com.mishalp789.url_shortener.url.dto.UrlResponse;
 import com.mishalp789.url_shortener.url.entity.Url;
@@ -14,7 +15,10 @@ import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,15 +57,39 @@ public class UrlService {
         return mapToResponse(saved);
     }
 
-    public List<UrlResponse> getMyUrls(Authentication authentication){
+    public PageResponse<UrlResponse> getMyUrls(
+            Authentication authentication,
+            String search,
+            Pageable pageable
+    ) {
         User user = getAuthenticatedUser(authentication);
-
-        return urlRepository.findAllByUserOrderByCreatedAtDesc(user)
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        Page<Url> page;
+        if(search == null || search.isBlank()){
+            page = urlRepository.findAllByUser(user,pageable);
+        }else {
+            page = urlRepository
+                    .findByUserAndOriginalUrlContainingIgnoreCaseOrUserAndShortCodeContainingIgnoreCase(
+                            user,
+                            search,
+                            user,
+                            search,
+                            pageable
+                    );
+        }
+        return PageResponse.<UrlResponse>builder()
+                .content(
+                        page.getContent()
+                                .stream()
+                                .map(this::mapToResponse)
+                                .toList())
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .build();
     }
-
     @Transactional
     public String getOriginalUrl(String shortCode){
         Url url = urlRepository.findByShortCodeAndActiveTrue(shortCode)
