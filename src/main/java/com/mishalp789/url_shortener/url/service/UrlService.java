@@ -47,7 +47,9 @@ public class UrlService {
         String customAlias = null;
         if(request.getCustomAlias()!=null &&
             !request.getCustomAlias().isBlank()){
-            customAlias = request.getCustomAlias().trim();
+            customAlias = request.getCustomAlias()
+                    .trim()
+                    .toLowerCase();
 
             if(aliasValidator.isReserved(customAlias)){
                 throw new BadRequestException("Alias is Reserved");
@@ -228,6 +230,33 @@ public class UrlService {
                 .or(() -> urlRepository.findByShortCodeAndActiveTrue(identifier))
                 .orElseThrow(() ->
                         new UrlNotFoundException("Short URL not found"));
+    }
+
+    public AliasAvailabilityResponse checkAliasAvailability(String alias){
+        if(alias == null || alias.isBlank()){
+            throw new BadRequestException("Alias cannot be empty");
+        }
+
+        alias = alias.trim().toLowerCase();
+
+        if(aliasValidator.isReserved(alias)){
+            return AliasAvailabilityResponse.builder()
+                    .alias(alias)
+                    .available(false)
+                    .message("Reserved alias")
+                    .build();
+        }
+
+        boolean exists =
+                urlRepository.existsByCustomAlias(alias)
+                        || urlRepository.existsByShortCode(alias);
+
+        return AliasAvailabilityResponse.builder()
+                .alias(alias)
+                .available(!exists)
+                .message(exists ? "Alias already taken" : "Alias available")
+                .build();
+
     }
 
 }

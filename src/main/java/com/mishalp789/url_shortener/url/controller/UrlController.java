@@ -115,4 +115,16 @@ public class UrlController {
                 .build();
     }
 
+    @Operation(summary = "Check alias availability")
+    @GetMapping("/check-alias")
+    public ApiResponse<AliasAvailabilityResponse> checkAlias(
+            @RequestParam String alias
+    ){
+        return ApiResponse.<AliasAvailabilityResponse>builder()
+                .success(true)
+                .message("Alias availability checked")
+                .data(urlService.checkAliasAvailability(alias))
+                .build();
+    }
+
 }
