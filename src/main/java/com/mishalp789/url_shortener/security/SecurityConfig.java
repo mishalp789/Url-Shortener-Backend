@@ -42,8 +42,7 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/error",
                                 "/r/**"
-                        )
-                        .permitAll()
+                        ).permitAll()
                         .anyRequest()
                         .authenticated())
 

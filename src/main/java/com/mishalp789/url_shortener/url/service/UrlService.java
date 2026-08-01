@@ -8,6 +8,7 @@ import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.entity.Url;
 import com.mishalp789.url_shortener.url.repository.UrlRepository;
+import com.mishalp789.url_shortener.url.util.AliasValidator;
 import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +32,7 @@ public class UrlService {
     private final UserRepository userRepository;
     private final ShortCodeGenerator shortCodeGenerator;
     private final CacheManager cacheManager;
+    private final AliasValidator aliasValidator;
 
 
     @Value("${app.base-url}")
@@ -42,14 +44,30 @@ public class UrlService {
         User user = getAuthenticatedUser(authentication);
 
         String shortCode;
+        String customAlias = null;
+        if(request.getCustomAlias()!=null &&
+            !request.getCustomAlias().isBlank()){
+            customAlias = request.getCustomAlias().trim();
 
-        do {
-            shortCode = shortCodeGenerator.generate();
-        } while (urlRepository.existsByShortCode(shortCode));
+            if(aliasValidator.isReserved(customAlias)){
+                throw new BadRequestException("Alias is Reserved");
+            }
+            if(urlRepository.existsByCustomAlias(customAlias)){
+                throw new BadRequestException("Alias already exists");
+            }
+            shortCode = customAlias;
+        }
+
+        else{
+            do {
+                shortCode = shortCodeGenerator.generate();
+            } while (urlRepository.existsByShortCode(shortCode));
+        }
 
         Url url = Url.builder()
                 .originalUrl(request.getOriginalUrl())
                 .shortCode(shortCode)
+                .customAlias(customAlias)
                 .user(user)
                 .build();
 
@@ -86,19 +104,17 @@ public class UrlService {
                 .build();
     }
     @Transactional(readOnly = true)
-    @Cacheable(value = "urls", key = "#shortCode")
-    public String getOriginalUrl(String shortCode){
-        Url url = urlRepository.findByShortCodeAndActiveTrue(shortCode)
-                .orElseThrow(() ->
-                        new UrlNotFoundException("Short URL not found"));
-
+    @Cacheable(value = "urls", key = "#identifier")
+    public String getOriginalUrl(String identifier){
+        Url url = findUrlByIdentifier(identifier);
 
         return url.getOriginalUrl();
     }
 
     @Transactional
-    public void incrementClickCount(String shortCode) {
-        urlRepository.incrementClickCount(shortCode);
+    public void incrementClickCount(String identifier) {
+        Url url = findUrlByIdentifier(identifier);
+        urlRepository.incrementClickCount(url.getShortCode());
     }
 
     public UrlResponse getUrl(Long id,
@@ -145,7 +161,7 @@ public class UrlService {
                 .originalUrl(url.getOriginalUrl())
                 .shortCode(url.getShortCode())
                 .customAlias(url.getCustomAlias())
-                .shortUrl(baseUrl + "/" + url.getShortCode())
+                .shortUrl(baseUrl + "/r/" + url.getShortCode())
                 .clickCount(url.getClickCount())
                 .active(url.getActive())
                 .createdAt(url.getCreatedAt())
@@ -175,10 +191,10 @@ public class UrlService {
                 .id(url.getId())
                 .originalUrl(url.getOriginalUrl())
                 .shortCode(url.getShortCode())
-                .shortUrl(baseUrl + "/" + url.getShortCode())
+                .customAlias(url.getCustomAlias())
+                .shortUrl(baseUrl + "/r/" + url.getShortCode())
                 .clickCount(url.getClickCount())
                 .active(url.getActive())
-                .customAlias(url.getCustomAlias())
                 .build();
     }
 
@@ -203,6 +219,15 @@ public class UrlService {
         return urlRepository.findByIdAndUser(id, user)
                 .orElseThrow(() ->
                         new BadRequestException("URL not found"));
+    }
+
+    private Url findUrlByIdentifier(String identifier) {
+
+        return urlRepository.findByCustomAlias(identifier)
+                .filter(Url::getActive)
+                .or(() -> urlRepository.findByShortCodeAndActiveTrue(identifier))
+                .orElseThrow(() ->
+                        new UrlNotFoundException("Short URL not found"));
     }
 
 }
