@@ -12,14 +12,16 @@ import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import org.springframework.cache.CacheManager;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +30,8 @@ public class UrlService {
     private final UrlRepository urlRepository;
     private final UserRepository userRepository;
     private final ShortCodeGenerator shortCodeGenerator;
+    private final CacheManager cacheManager;
+
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -81,14 +85,20 @@ public class UrlService {
                 .last(page.isLast())
                 .build();
     }
-    @Transactional
+    @Transactional(readOnly = true)
+    @Cacheable(value = "urls", key = "#shortCode")
     public String getOriginalUrl(String shortCode){
         Url url = urlRepository.findByShortCodeAndActiveTrue(shortCode)
                 .orElseThrow(() ->
                         new UrlNotFoundException("Short URL not found"));
-        url.setClickCount(url.getClickCount()+1);
+
 
         return url.getOriginalUrl();
+    }
+
+    @Transactional
+    public void incrementClickCount(String shortCode) {
+        urlRepository.incrementClickCount(shortCode);
     }
 
     public UrlResponse getUrl(Long id,
@@ -99,11 +109,12 @@ public class UrlService {
         return mapToResponse(url);
 
     }
-
+    @Transactional
     public void deleteUrl(Long id,
                           Authentication authentication) {
 
         Url url = getUserUrl(id, authentication);
+        evictUrlCache(url.getShortCode());
 
         urlRepository.delete(url);
 
@@ -118,6 +129,7 @@ public class UrlService {
         Url url = getUserUrl(id, authentication);
 
         url.setActive(request.getActive());
+        evictUrlCache(url.getShortCode());
 
         return mapToResponse(url);
 
@@ -166,6 +178,13 @@ public class UrlService {
                 .clickCount(url.getClickCount())
                 .active(url.getActive())
                 .build();
+    }
+
+    private void evictUrlCache(String shortCode){
+        Cache cache = cacheManager.getCache("urls");
+        if(cache!=null){
+            cache.evict(shortCode);
+        }
     }
 
     private User getAuthenticatedUser(Authentication authentication) {

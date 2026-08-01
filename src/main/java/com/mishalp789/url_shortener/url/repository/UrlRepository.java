@@ -6,6 +6,7 @@ import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -43,4 +44,11 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     """)
     Long getTotalClicks(@Param("user") User user);
 
+    @Modifying
+    @Query("""
+    UPDATE Url u
+    SET u.clickCount = u.clickCount + 1
+    WHERE u.shortCode = :shortCode
+    """)
+    void incrementClickCount(@Param("shortCode") String shortCode);
 }
