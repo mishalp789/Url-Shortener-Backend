@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.CacheEvict;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
@@ -102,7 +102,7 @@ public class UrlService {
                 .content(
                         page.getContent()
                                 .stream()
-                                .map(this::mapToResponse)
+                                .map(urlMapper::toResponse)
                                 .toList())
                 .page(page.getNumber())
                 .size(page.getSize())
@@ -188,21 +188,6 @@ public class UrlService {
     }
 
 
-
-
-    private UrlResponse mapToResponse(Url url) {
-
-        return UrlResponse.builder()
-                .id(url.getId())
-                .originalUrl(url.getOriginalUrl())
-                .shortCode(url.getShortCode())
-                .customAlias(url.getCustomAlias())
-                .shortUrl(baseUrl + "/r/" + url.getShortCode())
-                .clickCount(url.getClickCount())
-                .active(url.getActive())
-                .build();
-    }
-
     private void evictUrlCache(String shortCode){
         Cache cache = cacheManager.getCache("urls");
         if(cache!=null){
@@ -272,6 +257,28 @@ public class UrlService {
             throw new UrlExpiredException("This short URL has expired.");
         }
 
+    }
+
+    @Transactional
+    public UrlResponse updateExpiration(
+            Long id,
+            UpdateExpirationRequest request,
+            Authentication authentication
+    ){
+        Url url = getUserUrl(id,authentication);
+        url.setExpiresAt(request.getExpiresAt());
+        evictUrlCache(url.getShortCode());
+        if(url.getCustomAlias()!=null){
+            evictUrlCache(url.getCustomAlias());
+
+        }
+        return urlMapper.toResponse(url);
+    }
+
+    public LocalDateTime getExpiration(Long id,Authentication authentication){
+        Url url = getUserUrl(id,authentication);
+
+        return url.getExpiresAt();
     }
 
 

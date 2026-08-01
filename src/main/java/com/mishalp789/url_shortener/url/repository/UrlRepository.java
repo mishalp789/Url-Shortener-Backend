@@ -8,8 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
@@ -60,4 +60,15 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     AND u.expiresAt < CURRENT_TIMESTAMP
     """)
     long countExpiredUrls(@Param("user") User user);
+
+    @Modifying
+    @Transactional
+        @Query("""
+    UPDATE Url u
+    SET u.active = false
+    WHERE u.active = true
+    AND u.expiresAt IS NOT NULL
+    AND u.expiresAt < CURRENT_TIMESTAMP
+    """)
+    int disableExpiredUrls();
 }
