@@ -8,14 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UrlRepository extends JpaRepository<Url, Long> {
     Optional<Url> findByShortCode(String shortCode);
     boolean existsByShortCode(String shortCode);
-    Optional<Url> findByShortCodeAndActiveTrue(String shortCode);
     Page<Url> findAllByUser(User user,Pageable pageable);
     @Query("""
     SELECT u
@@ -51,4 +50,25 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     WHERE u.shortCode = :shortCode
     """)
     void incrementClickCount(@Param("shortCode") String shortCode);
+    boolean existsByCustomAlias(String customAlias);
+    Optional<Url> findByCustomAlias(String customAlias);
+    @Query("""
+    SELECT COUNT(u)
+    FROM Url u
+    WHERE u.user = :user
+    AND u.expiresAt IS NOT NULL
+    AND u.expiresAt < CURRENT_TIMESTAMP
+    """)
+    long countExpiredUrls(@Param("user") User user);
+
+    @Modifying
+    @Transactional
+        @Query("""
+    UPDATE Url u
+    SET u.active = false
+    WHERE u.active = true
+    AND u.expiresAt IS NOT NULL
+    AND u.expiresAt < CURRENT_TIMESTAMP
+    """)
+    int disableExpiredUrls();
 }

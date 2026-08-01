@@ -11,7 +11,7 @@ public class ShortCodeGenerator {
     private static final String CHARACTERS =
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    private static final int LENGTH = 6;
+    private static final int LENGTH = AppConstants.SHORT_CODE_LENGTH;
 
     private final SecureRandom random = new SecureRandom();
 

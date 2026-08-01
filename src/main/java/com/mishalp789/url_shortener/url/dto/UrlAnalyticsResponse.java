@@ -12,10 +12,12 @@ public class UrlAnalyticsResponse {
     private Long id;
     private String originalUrl;
     private String shortCode;
+    private String customAlias;
     private String shortUrl;
     private Long clickCount;
     private Boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiresAt;
 
 }
