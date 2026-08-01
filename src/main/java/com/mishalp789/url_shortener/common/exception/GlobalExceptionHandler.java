@@ -1,5 +1,6 @@
 package com.mishalp789.url_shortener.common.exception;
 
+import com.mishalp789.url_shortener.common.response.ApiResponse;
 import com.mishalp789.url_shortener.common.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,6 +85,17 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(UrlExpiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUrlExpired(UrlExpiredException ex){
+        return ResponseEntity.status(HttpStatus.GONE)
+                .body(
+                        ApiResponse.<Void>builder()
+                                .success(false)
+                                .message(ex.getMessage())
+                                .build()
+                );
     }
 
 }

@@ -14,6 +14,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 
 @Tag(name = "URL Management")
 @SecurityRequirement(name = "bearerAuth")
@@ -148,6 +150,39 @@ public class UrlController {
                 .success(true)
                 .message("Alias availability checked")
                 .data(urlService.checkAliasAvailability(alias))
+                .build();
+    }
+
+    @Operation(
+            summary = "Update URL expiration",
+            description = "Updates the expiration date and time of a shortened URL owned by the authenticated user. Once the expiration time is reached, the URL will no longer be accessible."
+    )
+    @PatchMapping("/{id}/expiration")
+    public ApiResponse<UrlResponse> updateExpiration(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateExpirationRequest request,
+            Authentication authentication) {
+
+        return ApiResponse.<UrlResponse>builder()
+                .success(true)
+                .message("Expiration updated successfully")
+                .data(urlService.updateExpiration(id, request, authentication))
+                .build();
+    }
+
+    @Operation(
+            summary = "Retrieve URL expiration",
+            description = "Returns the expiration date and time of a specific shortened URL owned by the authenticated user. If no expiration is configured, the response will indicate that the URL does not expire."
+    )
+    @GetMapping("/{id}/expiration")
+    public ApiResponse<LocalDateTime> getExpiration(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        return ApiResponse.<LocalDateTime>builder()
+                .success(true)
+                .message("Expiration retrieved successfully")
+                .data(urlService.getExpiration(id, authentication))
                 .build();
     }
 

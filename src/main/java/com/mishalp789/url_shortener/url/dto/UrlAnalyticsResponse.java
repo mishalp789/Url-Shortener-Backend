@@ -18,5 +18,6 @@ public class UrlAnalyticsResponse {
     private Boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime expiresAt;
 
 }

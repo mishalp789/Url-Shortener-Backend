@@ -1,9 +1,12 @@
 package com.mishalp789.url_shortener.url.dto;
 
+import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Data
 public class CreateUrlRequest {
@@ -25,6 +28,10 @@ public class CreateUrlRequest {
             message = "Alias can contain only letters, numbers, hyphens and underscores"
     )
     private String customAlias;
+
+    @Future(message = "Expiration must be in the future")
+    private LocalDateTime expiresAt;
+
 
 
 }
