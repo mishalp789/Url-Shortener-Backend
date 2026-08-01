@@ -3,10 +3,13 @@ package com.mishalp789.url_shortener.url.service;
 
 import com.mishalp789.url_shortener.auth.entity.User;
 import com.mishalp789.url_shortener.auth.repository.UserRepository;
+import com.mishalp789.url_shortener.auth.service.CurrentUserService;
+import com.mishalp789.url_shortener.common.constants.CacheConstants;
 import com.mishalp789.url_shortener.common.exception.BadRequestException;
 import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.entity.Url;
+import com.mishalp789.url_shortener.url.mapper.UrlMapper;
 import com.mishalp789.url_shortener.url.repository.UrlRepository;
 import com.mishalp789.url_shortener.url.util.AliasValidator;
 import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
@@ -33,6 +36,8 @@ public class UrlService {
     private final ShortCodeGenerator shortCodeGenerator;
     private final CacheManager cacheManager;
     private final AliasValidator aliasValidator;
+    private final CurrentUserService currentUserService;
+    private final UrlMapper urlMapper;
 
 
     @Value("${app.base-url}")
@@ -41,15 +46,13 @@ public class UrlService {
     public UrlResponse createShortUrl(CreateUrlRequest request,
                                       Authentication authentication) {
 
-        User user = getAuthenticatedUser(authentication);
+        User user = currentUserService.getCurrentUser(authentication);
 
         String shortCode;
         String customAlias = null;
         if(request.getCustomAlias()!=null &&
             !request.getCustomAlias().isBlank()){
-            customAlias = request.getCustomAlias()
-                    .trim()
-                    .toLowerCase();
+            customAlias = normalizeAlias(request.getCustomAlias());
 
             if(aliasValidator.isReserved(customAlias)){
                 throw new BadRequestException("Alias is Reserved");
@@ -75,7 +78,7 @@ public class UrlService {
 
         Url saved = urlRepository.save(url);
 
-        return mapToResponse(saved);
+        return urlMapper.toResponse(saved);
     }
 
     public PageResponse<UrlResponse> getMyUrls(
@@ -83,7 +86,7 @@ public class UrlService {
             String search,
             Pageable pageable
     ) {
-        User user = getAuthenticatedUser(authentication);
+        User user = currentUserService.getCurrentUser(authentication);
         Page<Url> page;
         if(search == null || search.isBlank()){
             page = urlRepository.findAllByUser(user,pageable);
@@ -106,7 +109,7 @@ public class UrlService {
                 .build();
     }
     @Transactional(readOnly = true)
-    @Cacheable(value = "urls", key = "#identifier")
+    @Cacheable(value = CacheConstants.URL_CACHE, key = "#identifier")
     public String getOriginalUrl(String identifier){
         Url url = findUrlByIdentifier(identifier);
 
@@ -124,7 +127,7 @@ public class UrlService {
 
         Url url = getUserUrl(id, authentication);
 
-        return mapToResponse(url);
+        return urlMapper.toResponse(url);
 
     }
     @Transactional
@@ -133,6 +136,9 @@ public class UrlService {
 
         Url url = getUserUrl(id, authentication);
         evictUrlCache(url.getShortCode());
+        if(url.getCustomAlias()!=null){
+            evictUrlCache(url.getCustomAlias());
+        }
 
         urlRepository.delete(url);
 
@@ -149,7 +155,7 @@ public class UrlService {
         url.setActive(request.getActive());
         evictUrlCache(url.getShortCode());
 
-        return mapToResponse(url);
+        return urlMapper.toResponse(url);
 
     }
 
@@ -158,23 +164,13 @@ public class UrlService {
             Authentication authentication
     ){
         Url url = getUserUrl(id,authentication);
-        return UrlAnalyticsResponse.builder()
-                .id(url.getId())
-                .originalUrl(url.getOriginalUrl())
-                .shortCode(url.getShortCode())
-                .customAlias(url.getCustomAlias())
-                .shortUrl(baseUrl + "/r/" + url.getShortCode())
-                .clickCount(url.getClickCount())
-                .active(url.getActive())
-                .createdAt(url.getCreatedAt())
-                .updatedAt(url.getUpdatedAt())
-                .build();
+        return urlMapper.toAnalytics(url);
     }
 
     public DashboardResponse getDashboard(
             Authentication authentication
     ){
-        User user = getAuthenticatedUser(authentication);
+        User user = currentUserService.getCurrentUser(authentication);
 
         return DashboardResponse.builder()
                 .totalUrls(urlRepository.countByUser(user))
@@ -207,16 +203,10 @@ public class UrlService {
         }
     }
 
-    private User getAuthenticatedUser(Authentication authentication) {
-
-        return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() ->
-                        new BadRequestException("User not found"));
-    }
 
     private Url getUserUrl(Long id, Authentication authentication) {
 
-        User user = getAuthenticatedUser(authentication);
+        User user = currentUserService.getCurrentUser(authentication);
 
         return urlRepository.findByIdAndUser(id, user)
                 .orElseThrow(() ->
@@ -237,7 +227,7 @@ public class UrlService {
             throw new BadRequestException("Alias cannot be empty");
         }
 
-        alias = alias.trim().toLowerCase();
+        alias = normalizeAlias(alias);
 
         if(aliasValidator.isReserved(alias)){
             return AliasAvailabilityResponse.builder()
@@ -254,9 +244,13 @@ public class UrlService {
         return AliasAvailabilityResponse.builder()
                 .alias(alias)
                 .available(!exists)
-                .message(exists ? "Alias already taken" : "Alias available")
+                .message(exists ? "Alias "+alias+" is already in use " : "Alias available")
                 .build();
 
+    }
+
+    private String normalizeAlias(String alias) {
+        return alias.trim().toLowerCase();
     }
 
 }
