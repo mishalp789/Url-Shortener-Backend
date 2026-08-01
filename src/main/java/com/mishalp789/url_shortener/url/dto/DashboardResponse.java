@@ -10,4 +10,5 @@ public class DashboardResponse {
     private long activeUrls;
     private long inactiveUrls;
     private long totalClicks;
+    private long expiredUrls;
 }

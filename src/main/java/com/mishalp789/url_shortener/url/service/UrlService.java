@@ -6,6 +6,7 @@ import com.mishalp789.url_shortener.auth.repository.UserRepository;
 import com.mishalp789.url_shortener.auth.service.CurrentUserService;
 import com.mishalp789.url_shortener.common.constants.CacheConstants;
 import com.mishalp789.url_shortener.common.exception.BadRequestException;
+import com.mishalp789.url_shortener.common.exception.UrlExpiredException;
 import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.entity.Url;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.cache.CacheManager;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -113,6 +116,7 @@ public class UrlService {
     @Cacheable(value = CacheConstants.URL_CACHE, key = "#identifier")
     public String getOriginalUrl(String identifier){
         Url url = findUrlByIdentifier(identifier);
+        validateUrlAccess(url);
 
         return url.getOriginalUrl();
     }
@@ -120,6 +124,7 @@ public class UrlService {
     @Transactional
     public void incrementClickCount(String identifier) {
         Url url = findUrlByIdentifier(identifier);
+        validateUrlAccess(url);
         urlRepository.incrementClickCount(url.getShortCode());
     }
 
@@ -178,6 +183,7 @@ public class UrlService {
                 .activeUrls(urlRepository.countByUserAndActiveTrue(user))
                 .inactiveUrls(urlRepository.countByUserAndActiveFalse(user))
                 .totalClicks(urlRepository.getTotalClicks(user))
+                .expiredUrls(urlRepository.countExpiredUrls(user))
                 .build();
     }
 
@@ -218,7 +224,7 @@ public class UrlService {
 
         return urlRepository.findByCustomAlias(identifier)
                 .filter(Url::getActive)
-                .or(() -> urlRepository.findByShortCodeAndActiveTrue(identifier))
+                .or(() -> urlRepository.findByShortCode(identifier))
                 .orElseThrow(() ->
                         new UrlNotFoundException("Short URL not found"));
     }
@@ -253,5 +259,20 @@ public class UrlService {
     private String normalizeAlias(String alias) {
         return alias.trim().toLowerCase();
     }
+
+    private void validateUrlAccess(Url url) {
+
+        if (!Boolean.TRUE.equals(url.getActive())) {
+            throw new UrlNotFoundException("Short URL is inactive.");
+        }
+
+        if (url.getExpiresAt() != null &&
+                url.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+            throw new UrlExpiredException("This short URL has expired.");
+        }
+
+    }
+
 
 }
