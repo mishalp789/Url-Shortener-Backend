@@ -11,6 +11,7 @@ import com.mishalp789.url_shortener.common.exception.UrlNotFoundException;
 import com.mishalp789.url_shortener.url.dto.*;
 import com.mishalp789.url_shortener.url.entity.Url;
 import com.mishalp789.url_shortener.url.mapper.UrlMapper;
+import com.mishalp789.url_shortener.url.qr.QRCodeService;
 import com.mishalp789.url_shortener.url.repository.UrlRepository;
 import com.mishalp789.url_shortener.url.util.AliasValidator;
 import com.mishalp789.url_shortener.url.util.ShortCodeGenerator;
@@ -41,6 +42,7 @@ public class UrlService {
     private final AliasValidator aliasValidator;
     private final CurrentUserService currentUserService;
     private final UrlMapper urlMapper;
+    private final QRCodeService qrCodeService;
 
 
     @Value("${app.base-url}")
@@ -279,6 +281,16 @@ public class UrlService {
         Url url = getUserUrl(id,authentication);
 
         return url.getExpiresAt();
+    }
+
+    public byte[] generateQrCode(Long id,Authentication authentication){
+        Url url = getUserUrl(id,authentication);
+
+        String identifier = url.getCustomAlias() != null
+                ? url.getCustomAlias()
+                : url.getShortCode();
+
+        return qrCodeService.generate(identifier);
     }
 
 
