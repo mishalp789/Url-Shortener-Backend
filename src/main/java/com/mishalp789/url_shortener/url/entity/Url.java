@@ -5,6 +5,8 @@ import com.mishalp789.url_shortener.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "urls")
@@ -39,6 +41,9 @@ public class Url extends BaseEntity {
 
     @Column(name = "custom_alias", unique = true, length = 100)
     private String customAlias;
+
+    @Column(name = "expires_at")
+    private LocalDateTime expiresAt;
 
 
 }

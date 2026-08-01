@@ -73,6 +73,7 @@ public class UrlService {
                 .originalUrl(request.getOriginalUrl())
                 .shortCode(shortCode)
                 .customAlias(customAlias)
+                .expiresAt(request.getExpiresAt())
                 .user(user)
                 .build();
 

@@ -21,6 +21,7 @@ public class UrlMapper {
                 .customAlias(url.getCustomAlias())
                 .shortUrl(baseUrl + "/r/" + url.getShortCode())
                 .clickCount(url.getClickCount())
+                .expiresAt(url.getExpiresAt())
                 .active(url.getActive())
                 .build();
     }
@@ -34,6 +35,7 @@ public class UrlMapper {
                 .customAlias(url.getCustomAlias())
                 .shortUrl(baseUrl + "/r/" + url.getShortCode())
                 .clickCount(url.getClickCount())
+                .expiresAt(url.getExpiresAt())
                 .active(url.getActive())
                 .createdAt(url.getCreatedAt())
                 .updatedAt(url.getUpdatedAt())
