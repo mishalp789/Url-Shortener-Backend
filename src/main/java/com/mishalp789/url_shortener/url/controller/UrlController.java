@@ -11,9 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.http.MediaType;
 import java.time.LocalDateTime;
 
 
@@ -184,6 +185,26 @@ public class UrlController {
                 .message("Expiration retrieved successfully")
                 .data(urlService.getExpiration(id, authentication))
                 .build();
+    }
+
+    @Operation(
+            summary = "Generate QR code",
+            description = "Generates and returns a PNG QR code for a specific shortened URL owned by the authenticated user. Scanning the QR code redirects users to the associated destination URL."
+    )
+    @GetMapping(
+            value = "/{id}/qr",
+            produces = MediaType.IMAGE_PNG_VALUE
+    )
+    public ResponseEntity<byte[]> generateQr(
+            @PathVariable Long id,
+            Authentication authentication) {
+
+        byte[] image =
+                urlService.generateQrCode(id, authentication);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_PNG)
+                .body(image);
     }
 
 }
