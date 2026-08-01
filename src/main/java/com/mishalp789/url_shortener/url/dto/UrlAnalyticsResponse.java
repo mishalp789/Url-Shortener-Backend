@@ -3,9 +3,11 @@ package com.mishalp789.url_shortener.url.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
-public class UrlResponse {
+public class UrlAnalyticsResponse {
 
     private Long id;
     private String originalUrl;
@@ -13,5 +15,7 @@ public class UrlResponse {
     private String shortUrl;
     private Long clickCount;
     private Boolean active;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
 }
