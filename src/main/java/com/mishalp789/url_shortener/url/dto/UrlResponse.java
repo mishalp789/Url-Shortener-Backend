@@ -13,5 +13,6 @@ public class UrlResponse {
     private String shortUrl;
     private Long clickCount;
     private Boolean active;
+    private String customAlias;
 
 }

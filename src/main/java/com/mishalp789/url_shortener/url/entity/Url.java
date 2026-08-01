@@ -37,5 +37,8 @@ public class Url extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "custom_alias", unique = true, length = 100)
+    private String customAlias;
+
 
 }

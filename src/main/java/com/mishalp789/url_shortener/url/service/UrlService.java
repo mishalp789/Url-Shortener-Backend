@@ -144,6 +144,7 @@ public class UrlService {
                 .id(url.getId())
                 .originalUrl(url.getOriginalUrl())
                 .shortCode(url.getShortCode())
+                .customAlias(url.getCustomAlias())
                 .shortUrl(baseUrl + "/" + url.getShortCode())
                 .clickCount(url.getClickCount())
                 .active(url.getActive())
@@ -177,6 +178,7 @@ public class UrlService {
                 .shortUrl(baseUrl + "/" + url.getShortCode())
                 .clickCount(url.getClickCount())
                 .active(url.getActive())
+                .customAlias(url.getCustomAlias())
                 .build();
     }
 

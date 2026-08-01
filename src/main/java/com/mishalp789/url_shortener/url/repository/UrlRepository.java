@@ -51,4 +51,8 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     WHERE u.shortCode = :shortCode
     """)
     void incrementClickCount(@Param("shortCode") String shortCode);
+
+    boolean existsByCustomAlias(String customAlias);
+
+    Optional<Url> findByCustomAlias(String customAlias);
 }
