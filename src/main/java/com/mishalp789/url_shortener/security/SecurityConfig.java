@@ -1,5 +1,6 @@
 package com.mishalp789.url_shortener.security;
 
+import com.mishalp789.url_shortener.common.filter.RateLimitFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,6 +21,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
     private final JwtAuthenticationEntryPoint entryPoint;
     private final DaoAuthenticationProvider authenticationProvider;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http)
@@ -48,7 +50,9 @@ public class SecurityConfig {
 
                 .exceptionHandling(ex->ex
                         .authenticationEntryPoint(entryPoint))
-
+                .addFilterBefore(
+                        rateLimitFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(
                         jwtFilter,
                         UsernamePasswordAuthenticationFilter.class);
