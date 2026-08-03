@@ -71,4 +71,37 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     AND u.expiresAt < CURRENT_TIMESTAMP
     """)
     int disableExpiredUrls();
+
+    long count();
+    long countByActiveTrue();
+    long countByActiveFalse();
+
+    @Query("""
+    SELECT COUNT(u)
+    FROM Url u
+    WHERE u.expiresAt IS NOT NULL
+    AND u.expiresAt < CURRENT_TIMESTAMP
+    """)
+    long countExpiredUrls();
+    @Query("""
+    SELECT COALESCE(SUM(u.clickCount),0)
+    FROM Url u
+    """)
+    long totalClicks();
+    Page<Url> findAll(Pageable pageable);
+
+    @Query("""
+    SELECT u
+    FROM Url u
+    WHERE
+    LOWER(u.originalUrl) LIKE LOWER(CONCAT('%', :search, '%'))
+    OR
+    LOWER(u.shortCode) LIKE LOWER(CONCAT('%', :search, '%'))
+    OR
+    LOWER(COALESCE(u.customAlias,'')) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    Page<Url> searchAllUrls(
+            @Param("search") String search,
+            Pageable pageable
+    );
 }
