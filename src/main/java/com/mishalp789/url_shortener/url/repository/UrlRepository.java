@@ -88,4 +88,20 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     FROM Url u
     """)
     long totalClicks();
+    Page<Url> findAll(Pageable pageable);
+
+    @Query("""
+    SELECT u
+    FROM Url u
+    WHERE
+    LOWER(u.originalUrl) LIKE LOWER(CONCAT('%', :search, '%'))
+    OR
+    LOWER(u.shortCode) LIKE LOWER(CONCAT('%', :search, '%'))
+    OR
+    LOWER(COALESCE(u.customAlias,'')) LIKE LOWER(CONCAT('%', :search, '%'))
+    """)
+    Page<Url> searchAllUrls(
+            @Param("search") String search,
+            Pageable pageable
+    );
 }
