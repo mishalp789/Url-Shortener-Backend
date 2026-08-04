@@ -61,6 +61,12 @@ src
 
 ---
 
+## 🏗 Architecture
+
+See the complete architecture documentation:
+
+- [System Architecture](docs/architecture.md)
+
 ## 🔐 Authentication
 
 JWT Bearer Token Authentication
