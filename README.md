@@ -4,11 +4,10 @@ A production-ready URL Shortener REST API built with **Spring Boot 3**, featurin
 
 ---
 
-## 🚀 Live Demo
+## 🌐 Live Application
 
+- **API Base URL:** https://url-shortener-backend-qozg.onrender.com
 - **Swagger UI:** https://url-shortener-backend-qozg.onrender.com/swagger-ui/index.html
-
----
 
 ## ✨ Features
 
@@ -61,17 +60,11 @@ src
 
 ---
 
-## 🏗 Architecture
+## 📚 Documentation
 
-See the complete architecture documentation:
-
-- [System Architecture](docs/architecture.md)
-
-## 🗄 Database
-
+- [Architecture](docs/architecture.md)
 - [Database Design](docs/database.md)
-
-## 🔐 Authentication
+- [API Documentation](docs/api.md)
 
 JWT Bearer Token Authentication
 
