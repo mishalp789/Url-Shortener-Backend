@@ -67,6 +67,10 @@ See the complete architecture documentation:
 
 - [System Architecture](docs/architecture.md)
 
+## 🗄 Database
+
+- [Database Design](docs/database.md)
+
 ## 🔐 Authentication
 
 JWT Bearer Token Authentication
