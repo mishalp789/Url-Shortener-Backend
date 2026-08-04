@@ -42,7 +42,6 @@ public class AuthenticationService {
 
         User savedUser = userRepository.save(user);
 
-        String token = jwtService.generateToken(savedUser.getEmail());
 
         return buildAuthenticationResponse(savedUser);
     }
@@ -59,7 +58,6 @@ public class AuthenticationService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(()-> new BadRequestException("Invalid email or password"));
 
-        String token = jwtService.generateToken(user.getEmail());
 
         return buildAuthenticationResponse(user);
     }
