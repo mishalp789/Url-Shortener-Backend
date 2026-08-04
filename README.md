@@ -1,5 +1,13 @@
 # 🔗 URL Shortener Backend
 
+![Java](https://img.shields.io/badge/Java-17-orange)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-brightgreen)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-blue)
+![Redis](https://img.shields.io/badge/Redis-Upstash-red)
+![Docker](https://img.shields.io/badge/Docker-Enabled-blue)
+![GitHub Actions](https://img.shields.io/badge/CI-GitHub_Actions-success)
+
+
 A production-ready URL Shortener REST API built with **Spring Boot 3**, featuring JWT authentication, Redis caching, Flyway database migrations, rate limiting, Docker, CI/CD, and cloud deployment.
 
 ---
@@ -27,6 +35,20 @@ A production-ready URL Shortener REST API built with **Spring Boot 3**, featurin
 - Cloud Deployment (Render)
 
 ---
+
+## 📸 Screenshots
+
+### Swagger UI
+
+![Swagger](docs/images/swagger-ui.png)
+
+### GitHub Actions
+
+![GitHub Actions](docs/images/github-actions.png)
+
+### JaCoCo Coverage
+
+![JaCoCo](docs/images/jacoco-report.png)
 
 ## 🛠 Technology Stack
 
