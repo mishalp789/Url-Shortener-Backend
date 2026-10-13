@@ -1,6 +1,7 @@
 package com.mishalp789.urlshortener.service;
 
 import com.mishalp789.urlshortener.dto.CreateUrlRequest;
+import com.mishalp789.urlshortener.dto.UrlResponse;
 import com.mishalp789.urlshortener.entity.UrlEntity;
 import com.mishalp789.urlshortener.entity.UserEntity;
 import com.mishalp789.urlshortener.repository.UrlRepository;
@@ -27,7 +28,7 @@ public class UrlService {
         this.shortCodeGenerator = shortCodeGenerator;
     }
 
-    public UrlEntity createShortUrl(CreateUrlRequest request){
+    public UrlResponse createShortUrl(CreateUrlRequest request){
         String code;
         do{
             code = shortCodeGenerator.generate();
@@ -43,7 +44,17 @@ public class UrlService {
         url.setUser(user);
 
 
-        return urlRepository.save(url);
+        UrlEntity saved = urlRepository.save(url);
+
+        return new UrlResponse(
+                saved.getId(),
+                saved.getOriginalUrl(),
+                saved.getShortCode(),
+                saved.getCreatedAt(),
+                saved.getExpiresAt(),
+                saved.getClickCount(),
+                saved.getIsActive()
+        );
     }
 
     public String getOriginalUrl(String shortCode){

@@ -1,7 +1,7 @@
 package com.mishalp789.urlshortener.controller;
 
 import com.mishalp789.urlshortener.dto.CreateUrlRequest;
-import com.mishalp789.urlshortener.entity.UrlEntity;
+import com.mishalp789.urlshortener.dto.UrlResponse;
 import com.mishalp789.urlshortener.service.UrlService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +19,7 @@ public class UrlController {
     }
 
     @PostMapping
-    public UrlEntity createShortUrl(@RequestBody CreateUrlRequest request){
+    public UrlResponse createShortUrl(@RequestBody CreateUrlRequest request){
         return urlService.createShortUrl(request);
     }
 }
