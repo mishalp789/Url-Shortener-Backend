@@ -28,7 +28,8 @@ public class UrlService {
         this.shortCodeGenerator = shortCodeGenerator;
     }
 
-    public UrlResponse createShortUrl(CreateUrlRequest request){
+    public UrlResponse createShortUrl(
+            CreateUrlRequest request){
         String code;
         do{
             code = shortCodeGenerator.generate();
