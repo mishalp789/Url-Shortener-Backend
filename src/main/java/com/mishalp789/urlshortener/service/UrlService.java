@@ -4,6 +4,7 @@ import com.mishalp789.urlshortener.dto.CreateUrlRequest;
 import com.mishalp789.urlshortener.dto.UrlResponse;
 import com.mishalp789.urlshortener.entity.UrlEntity;
 import com.mishalp789.urlshortener.entity.UserEntity;
+import com.mishalp789.urlshortener.exception.ResourceNotFoundException;
 import com.mishalp789.urlshortener.repository.UrlRepository;
 import com.mishalp789.urlshortener.repository.UserRepository;
 import com.mishalp789.urlshortener.util.ShortCodeGenerator;
@@ -60,7 +61,7 @@ public class UrlService {
 
     public String getOriginalUrl(String shortCode){
         UrlEntity url = urlRepository.findByShortCode(shortCode)
-                .orElseThrow(()->new RuntimeException("Short URL not found"));
+                .orElseThrow(()->new ResourceNotFoundException("Short URL not found"));
         if(Boolean.FALSE.equals(url.getIsActive())){
             throw new RuntimeException("URL is inactive");
         }
